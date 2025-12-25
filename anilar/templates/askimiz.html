@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aşk Defterimiz</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #fff0f3;
+            font-family: 'Quicksand', sans-serif;
+            padding-bottom: 50px;
+            overflow-x: hidden;
+        }
+
+        /* --- KALP YAĞMURU --- */
+        #heart-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Tıklamayı engelleme garantisi */
+            z-index: -1; /* En arkaya at */
+            overflow: hidden;
+        }
+
+        .falling-heart {
+            position: absolute;
+            top: -10vh;
+            color: #ff8fab;
+            opacity: 0.6;
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.5));
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(110vh) rotate(360deg); }
+        }
+
+        /* --- SAYAÇ VE BAŞLIK --- */
+        .hero-section {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            padding: 80px 0;
+            text-align: center;
+            color: white;
+            border-bottom-left-radius: 50% 20px;
+            border-bottom-right-radius: 50% 20px;
+            box-shadow: 0 10px 30px rgba(255, 105, 180, 0.3);
+            position: relative; 
+            /* z-index kaldırdım, gerek yok */
+        }
+
+        .counter-text {
+            font-family: 'Dancing Script', cursive;
+            font-size: 4rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .heart-beat {
+            animation: beat 1s infinite;
+            display: inline-block;
+            color: #ff4d6d;
+        }
+        @keyframes beat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* --- KART TASARIMI --- */
+        .memory-card {
+            background: white;
+            padding: 15px;
+            padding-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: rotate(-2deg);
+            transition: transform 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .memory-card:hover {
+            transform: rotate(0deg) scale(1.03);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        .col-md-4:nth-child(even) .memory-card {
+            transform: rotate(2deg);
+        }
+        .col-md-4:nth-child(even) .memory-card:hover {
+            transform: rotate(0deg) scale(1.03);
+        }
+
+        /* --- MÜZİK BUTONU --- */
+        .music-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: #d63384;
+            color: white;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 2000; /* Müzik butonu daima en üstte */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        .music-btn:hover { transform: scale(1.1); background-color: #ff4d6d; }
+        .playing { animation: spin 3s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* --- MODAL (BÜYÜK RESİM) AYARLARI --- */
+        /* En kritik yer burası: Modalı her şeyin üzerine çıkarıyoruz */
+        .modal {
+            z-index: 9999 !important; 
+        }
+        .modal-backdrop {
+            z-index: 9998 !important; /* Arka plan karartması */
+        }
+        
+        .modal-content {
+            background-color: transparent;
+            border: none;
+        }
+        .modal-body img {
+            border: 10px solid white;
+            border-radius: 5px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            cursor: zoom-out;
+        }
+        .btn-close-white {
+            background-color: white;
+            opacity: 1;
+            padding: 10px;
+            border-radius: 50%;
+            position: absolute; 
+            right: 0; 
+            top: -40px; /* Çarpıyı resmin dışına, sağ üste aldım */
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="heart-container"></div>
+
+    <div class="hero-section">
+        <div class="container">
+            <h1 class="display-5 mb-3">Hoş Geldin Sevgilim <span class="heart-beat">❤️</span></h1>
+            <div id="zaman" class="counter-text">Hesaplanıyor...</div>
+        </div>
+    </div>
+
+    <div class="container mt-5 mb-5">
+        <div class="row">
+            {% for ani in anilar %}
+            <div class="col-md-4 mb-5">
+                
+                <div class="card memory-card h-100" data-bs-toggle="modal" data-bs-target="#modal{{ ani.id }}">
+                    {% if ani.resim %}
+                        <img src="{{ ani.resim.url }}" class="card-img-top rounded-0" alt="Anı" style="height: 300px; object-fit: cover; filter: sepia(20%);">
+                    {% else %}
+                        <div style="height: 300px; background-color: #f8f9fa; display: flex; align-items: center; justify-content: center;">📷 Resim Yok</div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title text-center" style="font-family: 'Dancing Script', cursive; color: #d63384; font-size: 1.8rem;">{{ ani.baslik }}</h5>
+                        <p class="card-text text-center text-muted small">{{ ani.aciklama|truncatewords:10 }}</p>
+                        <div class="text-center mt-2">
+                            <span class="badge bg-danger bg-opacity-75">Büyütmek için tıkla 🔍</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="modal{{ ani.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+                            
+                            <div class="modal-body p-0 text-center position-relative">
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Kapat"></button>
+
+                                {% if ani.resim %}
+                                    <img src="{{ ani.resim.url }}" class="img-fluid" alt="Büyük Anı" data-bs-dismiss="modal">
+                                {% endif %}
+                                
+                                <div class="bg-white p-3 mt-2 rounded" style="cursor: default;">
+                                    <h3 class="text-danger" style="font-family: 'Dancing Script', cursive;">{{ ani.baslik }}</h3>
+                                    <p class="text-dark lead">{{ ani.aciklama }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <audio id="askSarkisi" loop>
+        <source src="/static/sarki.mp3" type="audio/mp3">
+    </audio>
+    <button onclick="muzikCal()" class="music-btn" id="muzikButonu" title="Şarkımızı Çal">🎵</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // SAYAÇ
+        const baslangic = new Date(2023, 0, 15); 
+        setInterval(() => {
+            const fark = new Date() - baslangic;
+            const gun = Math.floor(fark / (1000 * 60 * 60 * 24));
+            const element = document.getElementById('zaman');
+            if(element) element.innerText = `${gun} Gündür Birlikteyiz`;
+        }, 1000);
+
+        // MÜZİK
+        function muzikCal() {
+            var muzik = document.getElementById("askSarkisi");
+            var buton = document.getElementById("muzikButonu");
+            if (muzik.paused) {
+                muzik.play();
+                buton.innerHTML = "⏸️";
+                buton.classList.add("playing");
+            } else {
+                muzik.pause();
+                buton.innerHTML = "🎵";
+                buton.classList.remove("playing");
+            }
+        }
+
+        // KALP YAĞMURU
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('falling-heart');
+            heart.innerText = '💖';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.fontSize = Math.random() * 20 + 15 + 'px';
+            const duration = Math.random() * 5 + 5; 
+            heart.style.animationDuration = duration + 's';
+            document.getElementById('heart-container').appendChild(heart);
+            setTimeout(() => { heart.remove(); }, duration * 1000);
+        }
+        setInterval(createHeart, 400);
+    </script>
+
+</body>
+</html>
